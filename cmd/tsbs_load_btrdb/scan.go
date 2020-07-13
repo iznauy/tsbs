@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"crypto/md5"
 	"github.com/google/uuid"
+	pb "github.com/iznauy/BTrDB/grpcinterface"
 	"github.com/iznauy/tsbs/load"
 	"github.com/pkg/errors"
 	"strconv"
@@ -18,8 +19,8 @@ type point struct {
 }
 
 type insertion struct {
-	Uuid   string          `json:"uuid"`
-	Points [][]interface{} `json:"readings"`
+	Uuid   string
+	Points []*pb.RawPoint
 }
 
 type insertionBatch struct {
@@ -38,11 +39,11 @@ func (b *insertionBatch) Append(item *load.Point) {
 	if !ok {
 		insert = &insertion{
 			Uuid:   p.id.String(),
-			Points: make([][]interface{}, 0, 16),
+			Points: make([]*pb.RawPoint, 0, 16),
 		}
 		b.metrics += 1
 	}
-	insert.Points = append(insert.Points, []interface{}{p.timestamp, p.value})
+	insert.Points = append(insert.Points, &pb.RawPoint{Time: p.timestamp, Value: p.value})
 	b.insertions[[16]byte(p.id)] = insert
 	b.rows += 1
 }

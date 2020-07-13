@@ -9,15 +9,10 @@ fi
 
 # Load parameters - common
 DATA_FILE_NAME=${DATA_FILE_NAME:-btrdb-data.gz}
-DATABASE_PORT=${DATABASE_PORT:-9000}
+DATABASE_PORT=${DATABASE_PORT:-2333}
 
 EXE_DIR=${EXE_DIR:-$(dirname $0)}
 source ${EXE_DIR}/load_common.sh
-
-until curl http://${DATABASE_HOST}:${DATABASE_PORT}/status 2>/dev/null; do
-    echo "Waiting for BTrDB"
-    sleep 1
-done
 
 # Load new data
 cat ${DATA_FILE} | gunzip | $EXE_FILE_NAME \
@@ -26,5 +21,7 @@ cat ${DATA_FILE} | gunzip | $EXE_FILE_NAME \
                                 --workers=${NUM_WORKERS} \
                                 --batch-size=${BATCH_SIZE} \
                                 --reporting-period=${REPORTING_PERIOD} \
-                                --url=http://${DATABASE_HOST}:${DATABASE_PORT} \
-                                --do-create-db=false
+                                --url=${DATABASE_HOST}:${DATABASE_PORT} \
+                                --do-create-db=false \
+                                --use-batch-insert=true
+

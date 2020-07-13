@@ -12,10 +12,12 @@ import (
 )
 
 var fatal = log.Fatalf
+var info = log.Printf
 
 var (
-	baseUrl string
-	backoff time.Duration
+	url            string
+	backoff        time.Duration
+	useBatchInsert bool
 )
 
 var loader *load.BenchmarkRunner
@@ -24,8 +26,9 @@ func init() {
 	var config load.BenchmarkRunnerConfig
 	config.AddToFlagSet(pflag.CommandLine)
 
-	pflag.String("url", "http://localhost:9000", "BTrDB URL.")
+	pflag.String("url", "localhost:2333", "BTrDB URL.")
 	pflag.Duration("backoff", time.Second, "Time to sleep between requests when server indicates backpressure is needed.")
+	pflag.Bool("use-batch-insert", true, "Whether to use batch insert")
 
 	pflag.Parse()
 
@@ -39,8 +42,9 @@ func init() {
 		panic(fmt.Errorf("unable to decode config: %s", err))
 	}
 
-	baseUrl = viper.GetString("url")
+	url = viper.GetString("url")
 	backoff = viper.GetDuration("backoff")
+	useBatchInsert = viper.GetBool("use-batch-insert")
 
 	loader = load.GetBenchmarkRunner(config)
 }

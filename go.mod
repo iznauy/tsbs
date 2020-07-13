@@ -11,8 +11,9 @@ require (
 	github.com/go-ole/go-ole v1.2.4 // indirect
 	github.com/gocql/gocql v0.0.0-20190810123941-df4b9cc33030
 	github.com/google/flatbuffers v1.11.0
-	github.com/google/go-cmp v0.3.1
+	github.com/google/go-cmp v0.5.0
 	github.com/google/uuid v1.1.1
+	github.com/iznauy/BTrDB v0.0.0-20200713032036-1dae5581b14c
 	github.com/jackc/pgconn v1.1.0
 	github.com/jackc/pgx/v4 v4.1.1
 	github.com/jmoiron/sqlx v1.2.0
@@ -27,5 +28,5 @@ require (
 	github.com/transceptor-technology/go-qpack v0.0.0-20190116123619-49a14b216a45
 	github.com/valyala/fasthttp v1.4.0
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
-	google.golang.org/appengine v1.6.1 // indirect
+	google.golang.org/grpc v1.30.0
 )
