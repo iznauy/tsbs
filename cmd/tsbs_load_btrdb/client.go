@@ -13,7 +13,9 @@ type btrdbClient struct {
 }
 
 func NewBTrDBClient() *btrdbClient {
-	conn, err := grpc.Dial(url, grpc.WithInsecure())
+	maxSize := 40 * 1024 * 1024
+	diaOpt := grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(maxSize), grpc.MaxCallSendMsgSize(maxSize))
+	conn, err := grpc.Dial(url, grpc.WithInsecure(), diaOpt)
 	if err != nil {
 		panic(err)
 	}

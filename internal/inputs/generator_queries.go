@@ -4,14 +4,15 @@ import (
 	"bufio"
 	"encoding/gob"
 	"fmt"
+
 	"io"
 	"math/rand"
 	"os"
 	"sort"
 	"time"
 
-	"github.com/spf13/pflag"
 	"github.com/iznauy/tsbs/cmd/tsbs_generate_queries/databases/akumuli"
+	"github.com/iznauy/tsbs/cmd/tsbs_generate_queries/databases/btrdb"
 	"github.com/iznauy/tsbs/cmd/tsbs_generate_queries/databases/cassandra"
 	"github.com/iznauy/tsbs/cmd/tsbs_generate_queries/databases/clickhouse"
 	"github.com/iznauy/tsbs/cmd/tsbs_generate_queries/databases/cratedb"
@@ -21,6 +22,7 @@ import (
 	"github.com/iznauy/tsbs/cmd/tsbs_generate_queries/databases/timescaledb"
 	"github.com/iznauy/tsbs/cmd/tsbs_generate_queries/databases/victoriametrics"
 	"github.com/iznauy/tsbs/cmd/tsbs_generate_queries/utils"
+	"github.com/spf13/pflag"
 )
 
 // Error messages when using a QueryGenerator
@@ -205,6 +207,11 @@ func (g *QueryGenerator) init(config GeneratorConfig) error {
 }
 
 func (g *QueryGenerator) initFactories() error {
+	btr := &btrdb.BaseGenerator{}
+	if err := g.addFactory(FormatBTrDB, btr); err != nil {
+		return err
+	}
+
 	cassandra := &cassandra.BaseGenerator{}
 	if err := g.addFactory(FormatCassandra, cassandra); err != nil {
 		return err

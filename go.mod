@@ -13,7 +13,7 @@ require (
 	github.com/google/flatbuffers v1.11.0
 	github.com/google/go-cmp v0.5.0
 	github.com/google/uuid v1.1.1
-	github.com/iznauy/BTrDB v0.0.0-20200713032036-1dae5581b14c
+	github.com/iznauy/BTrDB v0.0.0-20200718015118-9f7d85b80175
 	github.com/jackc/pgconn v1.1.0
 	github.com/jackc/pgx/v4 v4.1.1
 	github.com/jmoiron/sqlx v1.2.0
@@ -27,6 +27,10 @@ require (
 	github.com/spf13/viper v1.4.0
 	github.com/transceptor-technology/go-qpack v0.0.0-20190116123619-49a14b216a45
 	github.com/valyala/fasthttp v1.4.0
+	golang.org/x/net v0.0.0-20200707034311-ab3426394381 // indirect
+	golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae // indirect
+	golang.org/x/text v0.3.3 // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
+	google.golang.org/genproto v0.0.0-20200715011427-11fb19a81f2c // indirect
 	google.golang.org/grpc v1.30.0
 )

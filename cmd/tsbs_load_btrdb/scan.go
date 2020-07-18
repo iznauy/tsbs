@@ -87,7 +87,7 @@ func (d *decoder) Decode(_ *bufio.Reader) *load.Point {
 		fatal("cannot parse subkey and value: %v", err)
 		return nil
 	}
-	key := md5.Sum([]byte(prefix + subKey))
+	key := md5.Sum([]byte(prefix + "," + subKey))
 	id, err := uuid.FromBytes(key[:])
 	if err != nil {
 		fatal("cannot generate uuid: %v", err)
