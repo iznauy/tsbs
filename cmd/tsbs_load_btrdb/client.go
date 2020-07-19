@@ -51,7 +51,7 @@ func (c *btrdbClient) batchInsert(b *insertionBatch) error {
 	if b == nil {
 		return nil
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 1 * time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 20 * time.Second)
 	defer cancel()
 	req := &pb.BatchInsertRequest{
 		Inserts: make([]*pb.InsertRequest, 0, len(b.insertions)),

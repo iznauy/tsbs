@@ -18,7 +18,7 @@ func newProcessor() query.Processor {
 }
 
 func (p *processor) Init(_ int) {
-	conn, err := grpc.Dial("", grpc.WithInsecure())
+	conn, err := grpc.Dial(url, grpc.WithInsecure())
 	if err != nil {
 		panic(err)
 	}
@@ -27,25 +27,27 @@ func (p *processor) Init(_ int) {
 
 func (p *processor) ProcessQuery(q query.Query, _ bool) (status []*query.Stat, err error) {
 	qu := q.(*query.BTrDB)
-	status = make([]*query.Stat, 0, len(qu.SubQueries))
-	for _, subquery := range qu.SubQueries {
-		stat := query.GetPartialStat()
-		span := 0.0
-		if qu.QueryType == query.QueryStatistics {
-			req := subquery.(*pb.QueryStatisticsRequest)
-			span, err = p.processStatisticsQuery(req)
+	status = make([]*query.Stat, 0, len(qu.StatisticsSubQueries) + len(qu.NearestSubQueries))
+	if qu.QueryType == query.QueryStatistics {
+		for _, subquery := range qu.StatisticsSubQueries {
+			stat := query.GetPartialStat()
+			span, err := p.processStatisticsQuery(subquery)
 			if err != nil {
 				return nil, err
 			}
-		} else if qu.QueryType == query.QueryNearest {
-			req := subquery.(*pb.QueryNearestValueRequest)
-			span, err = p.processNearestQuery(req)
-			if err != nil {
-				return nil, err
-			}
+			stat.Init(q.HumanLabelName(), span)
+			status = append(status, stat)
 		}
-		stat.Init(q.HumanLabelName(), span)
-		status = append(status, stat)
+	} else if qu.QueryType == query.QueryNearest {
+		for _, subquery := range qu.NearestSubQueries {
+			stat := query.GetPartialStat()
+			span, err := p.processNearestQuery(subquery)
+			if err != nil {
+				return nil, err
+			}
+			stat.Init(q.HumanLabelName(), span)
+			status = append(status, stat)
+		}
 	}
 	return
 }

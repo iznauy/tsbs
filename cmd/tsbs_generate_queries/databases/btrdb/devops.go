@@ -99,13 +99,13 @@ func (d *Devops) GroupByTime(qi query.Query, nHosts, numMetrics int, timeRange t
 	metrics, err := devops.GetCPUMetricsSlice(numMetrics)
 	databases.PanicIfErr(err)
 
-	subQueries := make([]interface{}, 0, nHosts*numMetrics)
+	subQueries := make([]*pb.QueryStatisticsRequest, 0, nHosts*numMetrics)
 	for i := 0; i < nHosts; i++ {
 		host := d.randomHost()
 		for _, metric := range metrics {
 			id := d.getUUID(host, "cpu", metric)
 			subQuery := &pb.QueryStatisticsRequest{
-				Uuid:       id[:],
+				Uuid:       []byte(id.String()),
 				Start:      interval.Start().UnixNano(),
 				End:        interval.End().UnixNano(),
 				Resolution: 38, // 最接近 5 分钟的为 2^38 = 4分35秒
@@ -116,7 +116,7 @@ func (d *Devops) GroupByTime(qi query.Query, nHosts, numMetrics int, timeRange t
 
 	humanLabel := fmt.Sprintf("BTrDB %d cpu metric(s), random %d hosts, random %s by 5m", numMetrics, nHosts, timeRange)
 	humanDesc := fmt.Sprintf("%s: %s", humanLabel, interval.StartString())
-	d.fillInQuery(qi, humanLabel, humanDesc, query.QueryStatistics, subQueries)
+	d.fillInQuery(qi, humanLabel, humanDesc, query.QueryStatistics, subQueries, nil)
 }
 
 func (d *Devops) GroupByOrderByLimit(qi query.Query) {
@@ -128,12 +128,12 @@ func (d *Devops) GroupByTimeAndPrimaryTag(qi query.Query, numMetrics int) {
 	metrics, err := devops.GetCPUMetricsSlice(numMetrics)
 	databases.PanicIfErr(err)
 
-	subQueries := make([]interface{}, 0, d.getHostCount()*numMetrics)
+	subQueries := make([]*pb.QueryStatisticsRequest, 0, d.getHostCount()*numMetrics)
 	for host := 0; host < d.getHostCount(); host++ {
 		for _, metric := range metrics {
 			id := d.getUUID(host, "cpu", metric)
 			subQuery := &pb.QueryStatisticsRequest{
-				Uuid:       id[:],
+				Uuid:       []byte(id.String()),
 				Start:      interval.Start().UnixNano(),
 				End:        interval.End().UnixNano(),
 				Resolution: 42,
@@ -144,20 +144,20 @@ func (d *Devops) GroupByTimeAndPrimaryTag(qi query.Query, numMetrics int) {
 
 	humanLabel := devops.GetDoubleGroupByLabel("BTrDB", numMetrics)
 	humanDesc := fmt.Sprintf("%s: %s", humanLabel, interval.StartString())
-	d.fillInQuery(qi, humanLabel, humanDesc, query.QueryStatistics, subQueries)
+	d.fillInQuery(qi, humanLabel, humanDesc, query.QueryStatistics, subQueries, nil)
 }
 
 func (d *Devops) MaxAllCPU(qi query.Query, nHosts int) {
 	interval := d.Interval.MustRandWindow(devops.MaxAllDuration)
 	metrics := devops.GetAllCPUMetrics()
 
-	subQueries := make([]interface{}, 0, nHosts*len(metrics))
+	subQueries := make([]*pb.QueryStatisticsRequest, 0, nHosts*len(metrics))
 	for i := 0; i < nHosts; i++ {
 		host := d.randomHost()
 		for _, metric := range metrics {
 			id := d.getUUID(host, "cpu", metric)
 			subQuery := &pb.QueryStatisticsRequest{
-				Uuid:       id[:],
+				Uuid:       []byte(id.String()),
 				Start:      interval.Start().UnixNano(),
 				End:        interval.End().UnixNano(),
 				Resolution: 42, // 最接近 60 分钟的为 2^42 = 73分18秒
@@ -168,18 +168,18 @@ func (d *Devops) MaxAllCPU(qi query.Query, nHosts int) {
 
 	humanLabel := devops.GetMaxAllLabel("BTrDB", nHosts)
 	humanDesc := fmt.Sprintf("%s: %s", humanLabel, interval.StartString())
-	d.fillInQuery(qi, humanLabel, humanDesc, query.QueryStatistics, subQueries)
+	d.fillInQuery(qi, humanLabel, humanDesc, query.QueryStatistics, subQueries, nil)
 }
 
 func (d *Devops) LastPointPerHost(qi query.Query) {
 	metrics := devops.GetAllCPUMetrics()
-	subQueries := make([]interface{}, 0, d.getHostCount()*len(metrics))
+	subQueries := make([]*pb.QueryNearestValueRequest, 0, d.getHostCount()*len(metrics))
 
 	for host := 0; host < d.getHostCount(); host++ {
 		for _, metric := range metrics {
 			id := d.getUUID(host, "cpu", metric)
 			subQuery := &pb.QueryNearestValueRequest{
-				Uuid:      id[:],
+				Uuid:      []byte(id.String()),
 				Time:      d.Interval.End().UnixNano(),
 				Backwards: true,
 			}
@@ -189,7 +189,7 @@ func (d *Devops) LastPointPerHost(qi query.Query) {
 
 	humanLabel := "BTrDB last row per host"
 	humanDesc := humanLabel + ": cpu"
-	d.fillInQuery(qi, humanLabel, humanDesc, query.QueryNearest, subQueries)
+	d.fillInQuery(qi, humanLabel, humanDesc, query.QueryNearest, nil, subQueries)
 }
 
 func (d *Devops) HighCPUForHosts(qi query.Query, nHosts int) {
