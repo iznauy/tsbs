@@ -25,31 +25,29 @@ func (p *processor) Init(_ int) {
 	p.client = pb.NewBTrDBClient(conn)
 }
 
-func (p *processor) ProcessQuery(q query.Query, _ bool) (status []*query.Stat, err error) {
+func (p *processor) ProcessQuery(q query.Query, _ bool) ([]*query.Stat, error) {
 	qu := q.(*query.BTrDB)
-	status = make([]*query.Stat, 0, len(qu.StatisticsSubQueries) + len(qu.NearestSubQueries))
+	stat := query.GetStat()
+	span := 0.0
 	if qu.QueryType == query.QueryStatistics {
 		for _, subquery := range qu.StatisticsSubQueries {
-			stat := query.GetPartialStat()
-			span, err := p.processStatisticsQuery(subquery)
+			partSpan, err := p.processStatisticsQuery(subquery)
 			if err != nil {
 				return nil, err
 			}
-			stat.Init(q.HumanLabelName(), span)
-			status = append(status, stat)
+			span += partSpan
 		}
 	} else if qu.QueryType == query.QueryNearest {
 		for _, subquery := range qu.NearestSubQueries {
-			stat := query.GetPartialStat()
-			span, err := p.processNearestQuery(subquery)
+			partSpan, err := p.processNearestQuery(subquery)
 			if err != nil {
 				return nil, err
 			}
-			stat.Init(q.HumanLabelName(), span)
-			status = append(status, stat)
+			span += partSpan
 		}
 	}
-	return
+	stat.Init(q.HumanLabelName(), span)
+	return []*query.Stat{stat}, nil
 }
 
 func (p *processor) processStatisticsQuery(req *pb.QueryStatisticsRequest) (span float64, err error) {
