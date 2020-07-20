@@ -6,16 +6,15 @@ import (
 	"github.com/google/uuid"
 	pb "github.com/iznauy/BTrDB/grpcinterface"
 	"github.com/iznauy/tsbs/load"
-	"github.com/pkg/errors"
 	"strconv"
 	"strings"
 	"time"
 )
 
 type point struct {
-	id        uuid.UUID
+	key       string
 	timestamp int64
-	value     float64
+	values    map[string]float64
 }
 
 type insertion struct {
@@ -35,16 +34,20 @@ func (b *insertionBatch) Len() int {
 
 func (b *insertionBatch) Append(item *load.Point) {
 	p := item.Data.(*point)
-	insert, ok := b.insertions[[16]byte(p.id)]
-	if !ok {
-		insert = &insertion{
-			Uuid:   p.id.String(),
-			Points: make([]*pb.RawPoint, 0, 16),
-		}
+	for subKey, value := range p.values {
 		b.metrics += 1
+		key := md5.Sum([]byte(p.key + "," + subKey))
+		id, _ := uuid.FromBytes(key[:])
+		insert, ok := b.insertions[[16]byte(id)]
+		if !ok {
+			insert = &insertion{
+				Uuid:   id.String(),
+				Points: make([]*pb.RawPoint, 0, 16),
+			}
+		}
+		insert.Points = append(insert.Points, &pb.RawPoint{Time: p.timestamp, Value: value})
+		b.insertions[[16]byte(id)] = insert
 	}
-	insert.Points = append(insert.Points, &pb.RawPoint{Time: p.timestamp, Value: p.value})
-	b.insertions[[16]byte(p.id)] = insert
 	b.rows += 1
 }
 
@@ -82,20 +85,12 @@ func (d *decoder) Decode(_ *bufio.Reader) *load.Point {
 		fatal("cannot parse timestamp: %v", err)
 		return nil
 	}
-	subKey, value, err := parseSubKeyAndValue(parts[2])
-	if err != nil {
-		fatal("cannot parse subkey and value: %v", err)
-		return nil
-	}
-	key := md5.Sum([]byte(prefix + "," + subKey))
-	id, err := uuid.FromBytes(key[:])
-	if err != nil {
-		fatal("cannot generate uuid: %v", err)
-	}
+	values := parseValues(parts[2])
+
 	return load.NewPoint(&point{
-		id:        id,
+		key:       prefix,
 		timestamp: ts.UnixNano(),
-		value:     value,
+		values:    values,
 	})
 }
 
@@ -107,15 +102,16 @@ func parseTime(v string) (time.Time, error) {
 	return time.Unix(0, ts), nil
 }
 
-func parseSubKeyAndValue(s string) (string, float64, error) {
-	entry := strings.Split(s, "=")
-	if len(entry) != 2 {
-		fatal("incorrect point format, points field must has two parts")
-		return "", 0.0, errors.New("incorrect point format, points field must has two parts")
+func parseValues(s string) map[string]float64 {
+	entries := strings.Split(s, ",")
+	values := make(map[string]float64, len(entries))
+	for _, entry := range entries {
+		parts := strings.Split(entry, "=")
+		if len(parts) != 2 {
+			panic("incorrect point format, points field must has two parts")
+		}
+		value, _ := strconv.ParseFloat(parts[1], 64)
+		values[parts[0]] = value
 	}
-	value, err := strconv.ParseFloat(entry[1], 64)
-	if err != nil {
-		return "", 0.0, err
-	}
-	return entry[0], value, nil
+	return values
 }

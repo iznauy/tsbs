@@ -27,13 +27,13 @@ func (s *BTrDBSerializer) Serialize(p *Point, w io.Writer) error {
 	prefix = append(prefix, '\t')
 
 	buf := make([]byte, 0, 64)
-	// 把一个点拆分成多个数据对象
+
+
 	for i := 0; i < len(p.fieldKeys); i++ {
 		if p.fieldValues[i] == nil {
 			continue
 		}
-
-		buf = buf[:0] // 清空未写入的 fieldKey
+		buf = append(buf, ',')
 		buf = append(buf, p.fieldKeys[i]...)
 		buf = append(buf, '=')
 		val := p.fieldValues[i]
@@ -52,14 +52,13 @@ func (s *BTrDBSerializer) Serialize(p *Point, w io.Writer) error {
 			// btrdb 只支持数字类型
 			continue
 		}
-		buf = append(buf, '\n')
-
-		if _, err := w.Write(prefix); err != nil {
-			return err
-		}
-		if _, err := w.Write(buf); err != nil {
-			return err
-		}
+	}
+	buf = append(buf, '\n')
+	if _, err := w.Write(prefix); err != nil {
+		return err
+	}
+	if _, err := w.Write(buf[1:]); err != nil {
+		return err
 	}
 	return nil
 }
