@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	pb "github.com/iznauy/BTrDB/grpcinterface"
 	"google.golang.org/grpc"
 	"time"
@@ -13,7 +14,7 @@ type btrdbClient struct {
 }
 
 func NewBTrDBClient() *btrdbClient {
-	maxSize := 40 * 1024 * 1024
+	maxSize := 200 * 1024 * 1024
 	diaOpt := grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(maxSize), grpc.MaxCallSendMsgSize(maxSize))
 	conn, err := grpc.Dial(url, grpc.WithInsecure(), diaOpt)
 	if err != nil {
@@ -51,6 +52,7 @@ func (c *btrdbClient) batchInsert(b *insertionBatch) error {
 	if b == nil {
 		return nil
 	}
+	start := time.Now()
 	ctx, cancel := context.WithTimeout(context.Background(), 20 * time.Second)
 	defer cancel()
 	req := &pb.BatchInsertRequest{
@@ -72,5 +74,7 @@ func (c *btrdbClient) batchInsert(b *insertionBatch) error {
 	if resp.Status.Code != 0 {
 		return errors.New(resp.Status.Msg)
 	}
+	span := time.Now().Sub(start)
+	fmt.Println("batch insert 序列化 + 请求耗时为：", span)
 	return nil
 }

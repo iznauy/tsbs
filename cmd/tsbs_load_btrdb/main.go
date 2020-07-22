@@ -2,11 +2,13 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"github.com/iznauy/tsbs/internal/utils"
 	"github.com/iznauy/tsbs/load"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"io/ioutil"
 	"log"
 	"time"
 )
@@ -21,6 +23,7 @@ var (
 )
 
 var loader *load.BenchmarkRunner
+var d *decoder
 
 func init() {
 	var config load.BenchmarkRunnerConfig
@@ -47,12 +50,22 @@ func init() {
 	useBatchInsert = viper.GetBool("use-batch-insert")
 
 	loader = load.GetBenchmarkRunner(config)
+	start := time.Now()
+	data, err := ioutil.ReadAll(loader.GetBufferedReader())
+	if err != nil {
+		panic(err)
+	}
+	span := time.Now().Sub(start)
+	fmt.Println("加载数据总共耗时：", span)
+	d = &decoder{
+		scanner: bufio.NewScanner(bytes.NewReader(data)), // 预先加载所有数据
+	}
 }
 
 type benchmark struct{}
 
 func (b *benchmark) GetPointDecoder(br *bufio.Reader) load.PointDecoder {
-	return &decoder{scanner: bufio.NewScanner(br)}
+	return d
 }
 
 func (b *benchmark) GetBatchFactory() load.BatchFactory {

@@ -10,6 +10,7 @@ type processor struct {
 	backingOffChan chan bool
 	backingOffDone chan struct{}
 	client         *btrdbClient
+	span           time.Duration
 }
 
 func (p *processor) Init(workerNum int, doLoad bool) {
