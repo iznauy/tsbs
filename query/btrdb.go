@@ -9,6 +9,7 @@ import (
 const (
 	QueryStatistics = 1
 	QueryNearest    = 2
+	QueryRange = 3
 )
 
 type BTrDB struct {
@@ -19,6 +20,7 @@ type BTrDB struct {
 	QueryType            int
 	StatisticsSubQueries []*pb.QueryStatisticsRequest
 	NearestSubQueries    []*pb.QueryNearestValueRequest
+	RangeSubQueries      []*pb.QueryRangeRequest
 }
 
 var BTrDBPool = sync.Pool{
@@ -28,6 +30,7 @@ var BTrDBPool = sync.Pool{
 			HumanDescription:     make([]byte, 0, 1024),
 			StatisticsSubQueries: make([]*pb.QueryStatisticsRequest, 0, 10),
 			NearestSubQueries:    make([]*pb.QueryNearestValueRequest, 0, 10),
+			RangeSubQueries: make([]*pb.QueryRangeRequest, 0, 10),
 		}
 	},
 }
@@ -44,6 +47,7 @@ func (q *BTrDB) Release() {
 	q.QueryType = 0
 	q.StatisticsSubQueries = nil
 	q.NearestSubQueries = nil
+	q.RangeSubQueries = nil
 }
 
 func (q *BTrDB) HumanLabelName() []byte {
@@ -63,6 +67,6 @@ func (q *BTrDB) SetID(id uint64) {
 }
 
 func (q *BTrDB) String() string {
-	return fmt.Sprintf("HumanLabel: %s, HumanDescription: %s, QueryType: %d, StatisticsQuery: %v, NearestQuery: %v", q.HumanLabel, q.HumanDescription, q.QueryType, q.StatisticsSubQueries, q.NearestSubQueries)
+	return fmt.Sprintf("HumanLabel: %s, HumanDescription: %s, QueryType: %d, StatisticsQuery: %v, NearestQuery: %v, RangeQuery: %v", q.HumanLabel, q.HumanDescription, q.QueryType, q.StatisticsSubQueries, q.NearestSubQueries, q.RangeSubQueries)
 
 }

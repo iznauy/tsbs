@@ -16,7 +16,7 @@ func (g *BaseGenerator) GenerateEmptyQuery() query.Query {
 }
 
 func (g *BaseGenerator) fillInQuery(qi query.Query, humanLabel, humanDesc string, queryType int,
-	statisticsSubQueries []*pb.QueryStatisticsRequest, nearestSubQueries []*pb.QueryNearestValueRequest) {
+	statisticsSubQueries []*pb.QueryStatisticsRequest, nearestSubQueries []*pb.QueryNearestValueRequest, rangeSubQueries []*pb.QueryRangeRequest) {
 	q := qi.(*query.BTrDB)
 	q.HumanLabel = []byte(humanLabel)
 	q.HumanDescription = []byte(humanDesc)
@@ -24,7 +24,7 @@ func (g *BaseGenerator) fillInQuery(qi query.Query, humanLabel, humanDesc string
 	q.QueryType = queryType
 	q.StatisticsSubQueries = statisticsSubQueries
 	q.NearestSubQueries = nearestSubQueries
-
+	q.RangeSubQueries = rangeSubQueries
 }
 
 func (g *BaseGenerator) NewDevops(start, end time.Time, scale int) (utils.QueryGenerator, error) {

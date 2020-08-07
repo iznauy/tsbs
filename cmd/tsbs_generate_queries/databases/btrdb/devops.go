@@ -116,7 +116,7 @@ func (d *Devops) GroupByTime(qi query.Query, nHosts, numMetrics int, timeRange t
 
 	humanLabel := fmt.Sprintf("BTrDB %d cpu metric(s), random %d hosts, random %s by 5m", numMetrics, nHosts, timeRange)
 	humanDesc := fmt.Sprintf("%s: %s", humanLabel, interval.StartString())
-	d.fillInQuery(qi, humanLabel, humanDesc, query.QueryStatistics, subQueries, nil)
+	d.fillInQuery(qi, humanLabel, humanDesc, query.QueryStatistics, subQueries, nil, nil)
 }
 
 func (d *Devops) GroupByOrderByLimit(qi query.Query) {
@@ -144,7 +144,7 @@ func (d *Devops) GroupByTimeAndPrimaryTag(qi query.Query, numMetrics int) {
 
 	humanLabel := devops.GetDoubleGroupByLabel("BTrDB", numMetrics)
 	humanDesc := fmt.Sprintf("%s: %s", humanLabel, interval.StartString())
-	d.fillInQuery(qi, humanLabel, humanDesc, query.QueryStatistics, subQueries, nil)
+	d.fillInQuery(qi, humanLabel, humanDesc, query.QueryStatistics, subQueries, nil, nil)
 }
 
 func (d *Devops) MaxAllCPU(qi query.Query, nHosts int) {
@@ -168,7 +168,7 @@ func (d *Devops) MaxAllCPU(qi query.Query, nHosts int) {
 
 	humanLabel := devops.GetMaxAllLabel("BTrDB", nHosts)
 	humanDesc := fmt.Sprintf("%s: %s", humanLabel, interval.StartString())
-	d.fillInQuery(qi, humanLabel, humanDesc, query.QueryStatistics, subQueries, nil)
+	d.fillInQuery(qi, humanLabel, humanDesc, query.QueryStatistics, subQueries, nil, nil)
 }
 
 func (d *Devops) LastPointPerHost(qi query.Query) {
@@ -189,9 +189,49 @@ func (d *Devops) LastPointPerHost(qi query.Query) {
 
 	humanLabel := "BTrDB last row per host"
 	humanDesc := humanLabel + ": cpu"
-	d.fillInQuery(qi, humanLabel, humanDesc, query.QueryNearest, nil, subQueries)
+	d.fillInQuery(qi, humanLabel, humanDesc, query.QueryNearest, nil, subQueries, nil)
 }
 
 func (d *Devops) HighCPUForHosts(qi query.Query, nHosts int) {
 	panic("GroupByOrderByLimit not supported in BTrDB")
+}
+
+func (d *Devops) TreeAggregation(qi query.Query, width int) {
+	host := d.randomHost()
+	metric := ""
+	if metrics, err := devops.GetCPUMetricsSlice(1); err != nil {
+		panic(err)
+	} else {
+		metric = metrics[0]
+	}
+	id := d.getUUID(host, "cpu", metric)
+	qu := &pb.QueryStatisticsRequest{
+		Uuid:       []byte(id.String()),
+		Start:      d.Interval.Start().UnixNano(),
+		End:        d.Interval.End().UnixNano(),
+		Resolution: uint32(width),
+	}
+	humanLabel := "BTrDB Tree Aggregation"
+	humanDesc := humanLabel + ": width=" + fmt.Sprint(width)
+	d.fillInQuery(qi, humanLabel, humanDesc, query.QueryStatistics, []*pb.QueryStatisticsRequest{qu}, nil, nil)
+}
+
+func (d *Devops) RangeQuery(qi query.Query, span time.Duration) {
+	interval := d.Interval.MustRandWindow(span)
+	host := d.randomHost()
+	metric := ""
+	if metrics, err := devops.GetCPUMetricsSlice(1); err != nil {
+		panic(err)
+	} else {
+		metric = metrics[0]
+	}
+	id := d.getUUID(host, "cpu", metric)
+	qu := &pb.QueryRangeRequest{
+		Uuid:  []byte(id.String()),
+		Start: interval.Start().UnixNano(),
+		End:   interval.End().UnixNano(),
+	}
+	humanLabel := "BTrDB Range Query"
+	humanDesc := humanLabel + ": interval=" + fmt.Sprint(interval)
+	d.fillInQuery(qi, humanLabel, humanDesc, query.QueryRange, nil, nil, []*pb.QueryRangeRequest{qu})
 }

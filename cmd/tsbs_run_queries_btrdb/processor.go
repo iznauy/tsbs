@@ -45,6 +45,14 @@ func (p *processor) ProcessQuery(q query.Query, _ bool) ([]*query.Stat, error) {
 			}
 			span += partSpan
 		}
+	} else if qu.QueryType == query.QueryRange {
+		for _, subquery := range qu.RangeSubQueries {
+			partSpan, err := p.processRangeQuery(subquery)
+			if err != nil {
+				return nil, err
+			}
+			span += partSpan
+		}
 	}
 	stat.Init(q.HumanLabelName(), span)
 	return []*query.Stat{stat}, nil
@@ -76,6 +84,26 @@ func (p *processor) processNearestQuery(req *pb.QueryNearestValueRequest) (span 
 
 	start := time.Now()
 	resp, err := p.client.QueryNearestValue(ctx, req)
+	span = float64(time.Since(start).Nanoseconds()) / 1e6
+
+	if err != nil {
+		return span, err
+	}
+	if resp.Status == nil {
+		return span, errors.New("incomplete response")
+	}
+	if resp.Status.Code != 0 {
+		return span, errors.New(resp.Status.Msg)
+	}
+	return span, nil
+}
+
+func (p *processor) processRangeQuery(req *pb.QueryRangeRequest) (span float64, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	start := time.Now()
+	resp, err := p.client.QueryRange(ctx, req)
 	span = float64(time.Since(start).Nanoseconds()) / 1e6
 
 	if err != nil {

@@ -53,7 +53,7 @@ func (c *btrdbClient) batchInsert(b *insertionBatch) error {
 		return nil
 	}
 	start := time.Now()
-	ctx, cancel := context.WithTimeout(context.Background(), 20 * time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 100 * time.Second)
 	defer cancel()
 	req := &pb.BatchInsertRequest{
 		Inserts: make([]*pb.InsertRequest, 0, len(b.insertions)),
@@ -75,6 +75,7 @@ func (c *btrdbClient) batchInsert(b *insertionBatch) error {
 		return errors.New(resp.Status.Msg)
 	}
 	span := time.Now().Sub(start)
-	fmt.Println("batch insert 序列化 + 请求耗时为：", span)
+	fmt.Println("batch insert 序列化 + 请求耗时为：", span, "共插入了", len(b.insertions), "个时间序列，平均每个时间序列耗时：",
+		float64(span.Milliseconds()) / float64(len(b.insertions)), "ms.")
 	return nil
 }

@@ -36,6 +36,10 @@ const (
 	LabelGroupbyOrderbyLimit = "groupby-orderby-limit"
 	// LabelHighCPU is the prefix for queries of the high-CPU variety
 	LabelHighCPU = "high-cpu"
+	// k 叉树
+	Aggregation = "aggregation"
+	// 范围查询
+	Range = "range"
 )
 
 // Core is the common component of all generators for all systems
@@ -118,6 +122,14 @@ type GroupbyOrderbyLimitFiller interface {
 // HighCPUFiller is a type that can fill in a high-cpu query
 type HighCPUFiller interface {
 	HighCPUForHosts(query.Query, int)
+}
+
+type TreeAggregationFilter interface {
+	TreeAggregation(query.Query, int)
+}
+
+type RangeQueryFilter interface {
+	RangeQuery(query.Query, time.Duration)
 }
 
 // GetDoubleGroupByLabel returns the Query human-readable label for DoubleGroupBy queries

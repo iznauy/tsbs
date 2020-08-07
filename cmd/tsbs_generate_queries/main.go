@@ -5,14 +5,15 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 	"github.com/iznauy/tsbs/cmd/tsbs_generate_queries/uses/devops"
 	"github.com/iznauy/tsbs/cmd/tsbs_generate_queries/uses/iot"
 	"github.com/iznauy/tsbs/cmd/tsbs_generate_queries/utils"
 	"github.com/iznauy/tsbs/internal/inputs"
 	internalutils "github.com/iznauy/tsbs/internal/utils"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 )
 
 var useCaseMatrix = map[string]map[string]utils.QueryFillerMaker{
@@ -24,14 +25,23 @@ var useCaseMatrix = map[string]map[string]utils.QueryFillerMaker{
 		devops.LabelSingleGroupby + "-5-1-12": devops.NewSingleGroupby(5, 1, 12),
 		devops.LabelSingleGroupby + "-5-8-1":  devops.NewSingleGroupby(5, 8, 1),
 		devops.LabelMaxAll + "-1":             devops.NewMaxAllCPU(1),
-		devops.LabelMaxAll + "-8":             devops.NewMaxAllCPU(8),
-		devops.LabelDoubleGroupby + "-1":      devops.NewGroupBy(1),
-		devops.LabelDoubleGroupby + "-5":      devops.NewGroupBy(5),
-		devops.LabelDoubleGroupby + "-all":    devops.NewGroupBy(devops.GetCPUMetricsLen()),
-		devops.LabelGroupbyOrderbyLimit:       devops.NewGroupByOrderByLimit,
-		devops.LabelHighCPU + "-all":          devops.NewHighCPU(0),
-		devops.LabelHighCPU + "-1":            devops.NewHighCPU(1),
-		devops.LabelLastpoint:                 devops.NewLastPointPerHost,
+		devops.LabelMaxAll + "-8":          devops.NewMaxAllCPU(8),
+		devops.LabelDoubleGroupby + "-1":   devops.NewGroupBy(1),
+		devops.LabelDoubleGroupby + "-5":   devops.NewGroupBy(5),
+		devops.LabelDoubleGroupby + "-all": devops.NewGroupBy(devops.GetCPUMetricsLen()),
+		devops.LabelGroupbyOrderbyLimit:    devops.NewGroupByOrderByLimit,
+		devops.LabelHighCPU + "-all":       devops.NewHighCPU(0),
+		devops.LabelHighCPU + "-1":         devops.NewHighCPU(1),
+		devops.LabelLastpoint:              devops.NewLastPointPerHost,
+		devops.Aggregation + "-26":         devops.NewTreeAggregation(26),
+		devops.Aggregation + "-28":         devops.NewTreeAggregation(28),
+		devops.Aggregation + "-30":         devops.NewTreeAggregation(30),
+		devops.Aggregation + "-32":         devops.NewTreeAggregation(32),
+		devops.Aggregation + "-34":         devops.NewTreeAggregation(34),
+		devops.Aggregation + "-36":         devops.NewTreeAggregation(36),
+		devops.Range + "-100s":				devops.NewRangeQuery(100 * time.Second),
+		devops.Range + "-100m":				devops.NewRangeQuery(100 * time.Minute),
+
 	},
 	"iot": {
 		iot.LabelLastLoc:                       iot.NewLastLocPerTruck,

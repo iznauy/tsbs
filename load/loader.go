@@ -267,9 +267,9 @@ func (l *BenchmarkRunner) createChannels(workQueues uint) []*duplexChannel {
 func (l *BenchmarkRunner) scan(b Benchmark, channels []*duplexChannel) uint64 {
 	// Start background reporting process
 	// TODO why it is here? May be it could be moved one level up?
-	if l.ReportingPeriod.Nanoseconds() > 0 {
-		go l.report(l.ReportingPeriod)
-	}
+	//if l.ReportingPeriod.Nanoseconds() > 0 {
+	//	go l.report(l.ReportingPeriod)
+	//}
 
 	// Scan incoming data
 	return scanWithIndexer(channels, l.BatchSize, l.Limit, l.br, b.GetPointDecoder(l.br), b.GetBatchFactory(), b.GetPointIndexer(uint(len(channels))))
