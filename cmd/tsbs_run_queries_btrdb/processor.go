@@ -61,7 +61,7 @@ func (p *processor) ProcessQuery(q query.Query, _ bool) ([]*query.Stat, error) {
 }
 
 func (p *processor) processStatisticsQuery(req *pb.QueryStatisticsRequest) (span float64, err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Second)
 	defer cancel()
 
 	start := time.Now()
@@ -81,7 +81,7 @@ func (p *processor) processStatisticsQuery(req *pb.QueryStatisticsRequest) (span
 }
 
 func (p *processor) processNearestQuery(req *pb.QueryNearestValueRequest) (span float64, err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Second)
 	defer cancel()
 
 	start := time.Now()
@@ -101,7 +101,7 @@ func (p *processor) processNearestQuery(req *pb.QueryNearestValueRequest) (span 
 }
 
 func (p *processor) processRangeQuery(req *pb.QueryRangeRequest) (span float64, err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Second)
 	defer cancel()
 
 	start := time.Now()

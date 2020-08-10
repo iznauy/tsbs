@@ -211,7 +211,7 @@ func (d *Devops) TreeAggregation(qi query.Query, width int) {
 		End:        d.Interval.End().UnixNano(),
 		Resolution: uint32(width),
 	}
-	humanLabel := "BTrDB Tree Aggregation"
+	humanLabel := "BTrDB tree aggregation"
 	humanDesc := humanLabel + ": width=" + fmt.Sprint(width)
 	d.fillInQuery(qi, humanLabel, humanDesc, query.QueryStatistics, []*pb.QueryStatisticsRequest{qu}, nil, nil)
 }
