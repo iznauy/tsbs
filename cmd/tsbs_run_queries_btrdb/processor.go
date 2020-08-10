@@ -18,7 +18,9 @@ func newProcessor() query.Processor {
 }
 
 func (p *processor) Init(_ int) {
-	conn, err := grpc.Dial(url, grpc.WithInsecure())
+	maxSize := 200 * 1024 * 1024
+	diaOpt := grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(maxSize), grpc.MaxCallSendMsgSize(maxSize))
+	conn, err := grpc.Dial(url, grpc.WithInsecure(), diaOpt)
 	if err != nil {
 		panic(err)
 	}
@@ -59,7 +61,7 @@ func (p *processor) ProcessQuery(q query.Query, _ bool) ([]*query.Stat, error) {
 }
 
 func (p *processor) processStatisticsQuery(req *pb.QueryStatisticsRequest) (span float64, err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
 	start := time.Now()
