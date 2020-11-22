@@ -248,7 +248,7 @@ func (g *DataGenerator) getSerializer(sim common.Simulator, format string) (seri
 		g.writeHeader(sim)
 		ret = &serialize.TimescaleDBSerializer{}
 	case FormatBTrDB:
-		ret = &serialize.BTrDBSerializer{}
+		ret = serialize.NewBTrDBSerializer()
 	default:
 		err = fmt.Errorf(errUnknownFormatFmt, format)
 	}
