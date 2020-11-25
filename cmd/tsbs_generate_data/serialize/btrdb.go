@@ -1,18 +1,29 @@
 package serialize
 
 import (
+	"crypto/md5"
 	"fmt"
+	"github.com/google/uuid"
 	"io"
 	"math/rand"
+	"os"
 )
 
-type BTrDBSerializer struct{
+const probFile = "~/prob.txt"
+
+type BTrDBSerializer struct {
 	FilterMap map[string]float64
+	fd        *os.File
 }
 
 func NewBTrDBSerializer() *BTrDBSerializer {
+	fd, err := os.OpenFile(probFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
+	if err != nil {
+		panic(err)
+	}
 	return &BTrDBSerializer{
 		FilterMap: map[string]float64{},
+		fd:        fd,
 	}
 }
 
@@ -41,11 +52,19 @@ func (s *BTrDBSerializer) Serialize(p *Point, w io.Writer) error {
 		if p.fieldValues[i] == nil {
 			continue
 		}
-		key := keyPrefix + string(p.fieldKeys[i])
+		key := keyPrefix + "," + string(p.fieldKeys[i])
 		// 计算一下当前 metrics 是否会被过滤
 		prob, ok := s.FilterMap[key]
 		if !ok {
-			prob = 0.1 + rand.Float64() * 0.9
+			prob = 0.1 + rand.Float64()*0.9
+			keyMD5 := md5.Sum([]byte(key))
+			id, _ := uuid.FromBytes(keyMD5[:])
+			if _, err := s.fd.WriteString(fmt.Sprintf("%s %f\n", id.String(), prob)); err != nil {
+				panic(err)
+			}
+			if err := s.fd.Sync(); err != nil {
+				panic(err)
+			}
 			s.FilterMap[key] = prob
 		}
 		if rand.Float64() > prob {
